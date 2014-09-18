@@ -10,6 +10,7 @@ urls = (
 	"/voters/([A-Z][A-Z])/(\d+)/(\d+)", "voters",
 )
 app = web.application(urls, globals())
+application = app.wsgifunc()
 
 class index:
 	def GET(self):
