@@ -1,0 +1,4 @@
+Logbook==0.7.0
+psycopg2==2.5.4
+web.py==0.37
+wsgiref==0.1.2
