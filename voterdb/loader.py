@@ -3,11 +3,28 @@
 The script takes multiple filenames, each containing list of voterids.
 The state is infered from the directory of the file and AC/PB are
 extracted from the filename.
+
+This doesn't actually load the voterids into the database, but provides in a 
+form that is faster to load into database. This script creates enties for all 
+booths if required and prints booth_id and voterid columns. The user is expected
+to use the output and load it into the database. Here is the typical workflow:
+
+    python voterdb/loader.py MP/*.txt > MP-data.txt
+    mkdir parts
+    split -l 1000000 MP-data.txt parts/MP-
+    for f in parts/MP-*;
+    do 
+        echo $f
+        psql voterdb -c "COPY voter (booth_id, voterid) FROM STDIN" < $f
+    done
 """
 import sys
 import os
 import re
 import web
+from logbook import Logger
+
+logger = Logger('voterdb.loader')
 
 db = web.database(dbn="postgres", db="voterdb")
 
@@ -63,18 +80,22 @@ class Loader:
         for f in filenames:
             state, ac, pb = self.parse_path(f)
             booth = self.booths[state, ac, pb]
-            booth.load(f)
+            data = booth.load(f)
+            for booth_id, voterid in data:
+                yield booth_id, voterid
 
 class Booth(web.storage):
     def load(self, filename):
+        logger.info("loading {}".format(filename))
         voterids = (line.strip() for line in open(filename))
-        data = [dict(booth_id=self.id, voterid=v) for v in voterids]
-        db.multiple_insert("voter", data)
+        return ((self.id, v) for v in voterids)
 
 def main():
     filenames = sys.argv[1:]
     loader = Loader()
-    loader.load(filenames)
+    data = loader.load(filenames)
+    for booth_id, voterid in data:
+        print str(booth_id) + "\t" + voterid
 
 if __name__ == "__main__":
     main()
