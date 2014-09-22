@@ -31,7 +31,7 @@ class voters:
 		elif state:
 			where = self.where(state=state, ac=split(i.ac))
 		else:
-			where = self.where(state=split(i.state), voterid=i.voterid)
+			where = self.where(state=split(i.state), voterid=split(i.voterid))
 
 		offset = int(i.offset)
 		limit = int(i.limit)
