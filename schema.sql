@@ -12,7 +12,10 @@ create table voter (
 	voterid text,
 	serial_number smallint,
 	name text,
+	name2 text,
 	age smallint,
+	gender char(1),
 	rel_name text,
+	rel_name2 text,
 	address text
 );
