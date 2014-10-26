@@ -104,20 +104,21 @@ def load_voterinfo(booth_id):
         vars=locals()).list()
 
     data = [search.get_voter_info(row.voterid) for row in result]
-    with db.transaction():
-        for row in data:
-            if not row:
-                return
-            print row
-            db.update("voter", where="voterid=$epic_no", vars=row,
-                serial_number=row['slno_inpart'],
-                name=row['name'],
-                name2=row['name_v1'],
-                rel_name=row['rln_name'],
-                rel_name2=row['rln_name_v1'],
-                gender=row['gender'],
-                age=row['age'],
-                address=row['house_no'])
+    data = (search.get_voter_info(row.voterid) for row in result)
+    for chunk in web.group(data, 100):
+        with db.transaction():
+            for row in chunk:
+                if not row:
+                    continue
+                db.update("voter", where="voterid=$epic_no", vars=row,
+                    serial_number=row.get('slno_inpart'),
+                    name=row.get('name'),
+                    name2=row.get('name_v1'),
+                    rel_name=row.get('rln_name'),
+                    rel_name2=row.get('rln_name_v1'),
+                    gender=row.get('gender'),
+                    age=row.get('age'),
+                    address=row.get('house_no'))
 
 
 def main():
