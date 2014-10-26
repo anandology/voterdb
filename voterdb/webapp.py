@@ -100,7 +100,6 @@ def load_voterinfo(booth_id):
     result = db.select("voter",
         what="voterid",
         where="name is NULL and booth_id=$booth_id",
-        limit=10,
         vars=locals()).list()
 
     data = (search.get_voter_info(row.voterid) for row in result)
