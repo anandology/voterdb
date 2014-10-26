@@ -106,7 +106,10 @@ class KeralaVoterSearch:
         # find other members in the famility to avoid requests for them.
         table = soup.find_all("table")[2]
         for tr in table.find_all("tr")[1:]:
-            name, rln_name, house_name, slno_inpart, ac, ps, voterid, status = [td.get_text().strip() for td in tr.find_all("td")]
+            try:
+                name, rln_name, house_name, slno_inpart, ac, ps, voterid, status = [td.get_text().strip() for td in tr.find_all("td")]
+            except ValueError:
+                continue
             logger.info("caching details for %s", voterid)
             if status.lower() != "active":
                 self.cache[voterid] = None
