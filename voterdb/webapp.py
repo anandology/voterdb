@@ -94,7 +94,8 @@ class voters:
 def load_voterinfo(booth_id):
     logging.info("loading voterinfo for booth id %s", booth_id)
 
-    search = voterlib.VoterSearch()
+    booth = db.select("booth", where="id=$booth_id", vars=locals())
+    search = voterlib.get_voter_search(booth.state)
 
     result = db.select("voter",
         what="voterid",

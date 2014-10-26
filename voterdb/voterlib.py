@@ -48,9 +48,31 @@ class VoterSearch:
             logger.error("failed - %s %s", voterid, d)
             pass
 
+class KeralaVoterSearch:
+    URL_PATTERN = "http://www.ceo.kerala.gov.in/electoralroll/edetailListAjax.html?epicNo={}"
+    def __init__(self):
+        self.session = requests.session()
+
+    def get_voter_info(self, voterid):
+        url = self.URL_PATTERN.format(voterid)
+        r = self.session.get(url).json()
+        if r.get('aaData'):
+            name, rln_name, address, slno_inpart, ac_no, part_no, link, status = r['aaData'][0]
+            if status.lower() == 'active':
+                return dict(epic_no=voterid,
+                     slno_inpart=slno_inpart,
+                     name=name,
+                     rln_name=rln_name,
+                    address=address)
+
+def get_voter_search(state):
+    if state == 'KL':
+        return KeralaVoterSearch()
+    else:
+        return VoterSearch()
+
 def get_voter_info(voterid):
-    v = VoterSearch()
-    print v.get_voter_info(voterid)
+    v = KeralaVoterSearch()
     print v.get_voter_info(voterid)
 
 re_token = re.compile("function _aquire\(\) *{ *return '([0-9a-f-]+)';")
