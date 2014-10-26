@@ -94,7 +94,7 @@ class voters:
 def load_voterinfo(booth_id):
     logging.info("loading voterinfo for booth id %s", booth_id)
 
-    booth = db.select("booth", where="id=$booth_id", vars=locals())
+    booth = db.select("booth", where="id=$booth_id", vars=locals())[0]
     search = voterlib.get_voter_search(booth.state)
 
     result = db.select("voter",
@@ -103,23 +103,19 @@ def load_voterinfo(booth_id):
         limit=10,
         vars=locals()).list()
 
-    data = [search.get_voter_info(row.voterid) for row in result]
     data = (search.get_voter_info(row.voterid) for row in result)
-    for chunk in web.group(data, 100):
-        with db.transaction():
-            for row in chunk:
-                if not row:
-                    continue
-                db.update("voter", where="voterid=$epic_no", vars=row,
-                    serial_number=row.get('slno_inpart'),
-                    name=row.get('name'),
-                    name2=row.get('name_v1'),
-                    rel_name=row.get('rln_name'),
-                    rel_name2=row.get('rln_name_v1'),
-                    gender=row.get('gender'),
-                    age=row.get('age'),
-                    address=row.get('house_no'))
-
+    for row in data:
+        if not row:
+            continue
+        db.update("voter", where="voterid=$epic_no", vars=row,
+            serial_number=row.get('slno_inpart'),
+            name=row.get('name'),
+            name2=row.get('name_v1'),
+            rel_name=row.get('rln_name'),
+            rel_name2=row.get('rln_name_v1'),
+            gender=row.get('gender'),
+            age=row.get('age'),
+            address=row.get('house_no'))
 
 def main():
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"

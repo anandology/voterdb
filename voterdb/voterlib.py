@@ -1,6 +1,7 @@
 import requests
 import re
 import logging
+from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
@@ -54,16 +55,40 @@ class KeralaVoterSearch:
         self.session = requests.session()
 
     def get_voter_info(self, voterid):
+        logger.info("fetching voterinfo for %s", voterid)
         url = self.URL_PATTERN.format(voterid)
         r = self.session.get(url).json()
         if r.get('aaData'):
-            name, rln_name, address, slno_inpart, ac_no, part_no, link, status = r['aaData'][0]
-            if status.lower() == 'active':
-                return dict(epic_no=voterid,
-                     slno_inpart=slno_inpart,
-                     name=name,
-                     rln_name=rln_name,
+            row = r['aaData'][0]
+            return self.read_details(row)
+
+    def read_details(self, voterid, row):
+        name, rln_name, address, slno_inpart, ac_no, part_no, link, status = r['aaData'][0]
+        if status.lower() != 'active':
+            return
+
+        details = dict(epic_no=voterid,
+                    slno_inpart=slno_inpart,
+                    name=name,
+                    rln_name=rln_name,
                     address=address)
+        html = self.session.get(url).text
+        # uncomment. The names in Malayalam are in comments.
+        html.replace("<!--", "XXXX").replace("-->", "")
+        soup = BeautifulSoup(html, 'lxml')
+        trs = soup.find("table").find_all("tr")
+        data = dict([td.get_text().strip() for td in tr.find_all("td")] for tr in trs)
+
+        name, name_v1 = data[1].split("XXXX")
+        age = data[2]
+        rln_name, rln_name_v1 = data[3].split("XXXX")
+        address, address_v1 = data[4].split("XXXX")
+
+        details['name_v1'] = name_v1.strip()
+        details['age'] = age.strip()
+        details['rln_name_v2'] = rln_name_v1.strip()
+        details['address'] = address.strip()
+        return details
 
 def get_voter_search(state):
     if state == 'KL':
