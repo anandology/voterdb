@@ -30,7 +30,7 @@ class voters:
         offset = int(i.offset)
         limit = int(i.limit)
         where += " AND voter.booth_id = booth.id"
-        what = "state, ac, pb, voterid, name, address"
+        what = "state, ac, pb, voterid, name, address, serial_number as serial, age, gender, rel_name"
         order = "state, ac, pb"
         result = db.select("voter, booth",
             what=what,
