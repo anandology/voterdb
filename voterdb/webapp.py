@@ -31,7 +31,7 @@ class voters:
         limit = int(i.limit)
         where += " AND voter.booth_id = booth.id"
         what = "state, ac, pb, voterid, name, address, serial_number as serial, age, gender, rel_name"
-        order = "state, ac, pb"
+        order = "state, ac, pb, serial"
         result = db.select("voter, booth",
             what=what,
             where=where,
